@@ -1,40 +1,61 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Stack, useRouter, useSegments } from 'expo-router'
-import { useAuth } from '@/hooks/useAuth'
-import { api } from '@/services/api'
+import { useFonts, Nunito_400Regular, Nunito_600SemiBold, Nunito_700Bold } from '@expo-google-fonts/nunito'
+import {
+  CormorantGaramond_400Regular,
+  CormorantGaramond_500Medium,
+  CormorantGaramond_600SemiBold,
+} from '@expo-google-fonts/cormorant-garamond'
+import { AuthProvider, useAuth } from '@/hooks/useAuth'
 
-export default function RootLayout() {
+function RootNavigator() {
   const { user, isLoading } = useAuth()
   const router = useRouter()
   const segments = useSegments()
-  const [consentChecked, setConsentChecked] = useState(false)
-  const [hasConsented, setHasConsented] = useState(false)
 
   useEffect(() => {
-    if (!user) { setConsentChecked(true); return }
-    api.patient.getConsent()
-      .then(r => setHasConsented(r.consented))
-      .catch(() => setHasConsented(false))
-      .finally(() => setConsentChecked(true))
-  }, [user])
-
-  useEffect(() => {
-    if (isLoading || !consentChecked) return
+    if (isLoading) return
     const inAuth = segments[0] === '(auth)'
-    const inOnboarding = segments[0] === '(onboarding)'
-    if (!user && !inAuth) { router.replace('/(auth)/login'); return }
-    if (user && inAuth) { router.replace(hasConsented ? '/(tabs)' : '/(onboarding)/consent'); return }
-    if (user && !hasConsented && !inOnboarding) router.replace('/(onboarding)/consent')
-    if (user && hasConsented && inOnboarding) router.replace('/(tabs)')
-  }, [user, isLoading, consentChecked, hasConsented, segments, router])
+    const inPatientPortal = segments[0] === '(patient)'
 
-  if (isLoading || !consentChecked) return null
+    if (!user) {
+      if (!inAuth) router.replace('/(auth)/login')
+      return
+    }
+    if (user.role === 'patient') {
+      if (!inPatientPortal) router.replace('/(patient)/home')
+      return
+    }
+    if (inAuth || inPatientPortal) router.replace('/')
+  }, [user, isLoading, segments, router])
+
+  if (isLoading) return null
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(auth)" />
-      <Stack.Screen name="(onboarding)" />
-      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="index" />
+      <Stack.Screen name="patient/[id]" options={{ headerShown: true, title: '' }} />
+      <Stack.Screen name="(patient)" />
     </Stack>
+  )
+}
+
+export default function RootLayout() {
+  const [fontsLoaded] = useFonts({
+    Nunito_400Regular,
+    Nunito_600SemiBold,
+    Nunito_700Bold,
+    CormorantGaramond_400Regular,
+    CormorantGaramond_500Medium,
+    CormorantGaramond_600SemiBold,
+  })
+
+  if (!fontsLoaded) return null
+
+  return (
+    <AuthProvider>
+      <RootNavigator />
+    </AuthProvider>
   )
 }

@@ -1,26 +1,26 @@
 {
   "expo": {
     "name": "Insight Navigator",
-    "slug": "insight-navigator-patient",
+    "slug": "insight-navigator",
     "version": "1.0.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "scheme": "insight",
     "platforms": ["ios", "android", "web"],
     "ios": {
-      "supportsTablet": false,
-      "bundleIdentifier": "com.insightnavigator.patient"
+      "supportsTablet": true,
+      "bundleIdentifier": "com.insightnavigator.app"
     },
     "android": {
-      "package": "com.insightnavigator.patient",
+      "package": "com.insightnavigator.app",
       "adaptiveIcon": {
-        "backgroundColor": "#2563eb"
+        "backgroundColor": "#0a0e1a"
       }
     },
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      ["expo-notifications", { "sounds": [] }]
+      "expo-font"
     ]
   }
 }
